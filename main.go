@@ -14,7 +14,7 @@ func main() {
 	//serverHost := "smtp.qq.com"
 	//serverPort := 465
 	//fromEmail := "820363773@qq.com"  //发送者邮箱
-	//fromPasswd := "azpcihwgxomibfgj" //  授权码
+	//fromPasswd := "" //  授权码
 	//subject := "服务器告警:ip-"
 	//body := ``
 	//TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, "curry.yang@zenwell.cn", serverPort)
@@ -24,8 +24,8 @@ func main() {
 	c.AddFunc("*/3 * * * *", func() {
 		serverHost := "smtp.qq.com"
 		serverPort := 465
-		fromEmail := "820363773@qq.com"  //发送者邮箱
-		fromPasswd := "azpcihwgxomibfgj" //  授权码
+		fromEmail := "820363773@qq.com" //发送者邮箱
+		fromPasswd := ""                //  授权码
 		//myToers :="hongery@yeah.net"// "li@latelee.org, latelee@163.com" 逗号隔开 接收者邮箱
 		myCCers := "" //"readchy@163.com" 抄送
 		ips := []string{"http://abc178.zenwell.cn/", "http://abc179.zenwell.cn/", "http://abc180.zenwell.cn/"}
