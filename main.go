@@ -6,12 +6,45 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
+
+	//serverHost := "smtp.qq.com"
+	//serverPort := 465
+	//fromEmail := "820363773@qq.com"  //发送者邮箱
+	//fromPasswd := "azpcihwgxomibfgj" //  授权码
+	//subject := "服务器告警:ip-"
+	//body := ``
+	//TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, "curry.yang@zenwell.cn", serverPort)
+	//TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, "820363773@qq.com", serverPort)
+
 	c := cron.New()
-	c.AddFunc("*/1 * * * *", func() {
-		fmt.Println("222")
+	c.AddFunc("*/3 * * * *", func() {
+		serverHost := "smtp.qq.com"
+		serverPort := 465
+		fromEmail := "820363773@qq.com"  //发送者邮箱
+		fromPasswd := "azpcihwgxomibfgj" //  授权码
+		//myToers :="hongery@yeah.net"// "li@latelee.org, latelee@163.com" 逗号隔开 接收者邮箱
+		myCCers := "" //"readchy@163.com" 抄送
+		ips := []string{"http://abc178.zenwell.cn/", "http://abc179.zenwell.cn/", "http://abc180.zenwell.cn/"}
+
+		for _, ip := range ips {
+			res := clientTest(ip)
+			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
+			if res != expectedString {
+				subject := "服务器告警:ip-" + ip
+				body := "服务器告警:ip-" + ip
+				TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, myCCers, serverPort)
+			} else {
+				fmt.Println(ip + "：" + time.Now().Format("2006-01-02 15:04:05") + "正常")
+			}
+		}
+	})
+
+	// 每天
+	c.AddFunc("0 9 */1 * *", func() {
 		serverHost := "smtp.qq.com"
 		serverPort := 465
 		fromEmail := "820363773@qq.com"  //发送者邮箱
@@ -19,20 +52,19 @@ func main() {
 
 		//myToers :="hongery@yeah.net"// "li@latelee.org, latelee@163.com" 逗号隔开 接收者邮箱
 		myCCers := "" //"readchy@163.com" 抄送
-		body := ``
 		ips := []string{"http://abc178.zenwell.cn/", "http://abc179.zenwell.cn/", "http://abc180.zenwell.cn/"}
 
 		for _, ip := range ips {
 			res := clientTest(ip)
-			fmt.Println(res)
-
-			fmt.Println(res != `{"msg":"缺少必要的参数：token","code":-1}`)
-			if res != `{"msg":"缺少必要的参数：token","code":-1}` {
-				subject := "服务器告警:ip-" + ip
-				TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, myCCers, serverPort, "765276145@qq.com")
+			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
+			if res == expectedString {
+				subject := "服务器正常:ip-" + ip
+				body := "服务器正常:ip-" + ip
+				TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, myCCers, serverPort)
 			}
 		}
 	})
+
 	c.Start()
 
 	//关闭着计划任务, 但是不能关闭已经在执行中的任务.
@@ -42,7 +74,6 @@ func main() {
 }
 
 func clientTest(url string) string {
-	fmt.Println("222")
 	// 创建一个新的HTTP客户端对象
 	client := &http.Client{}
 
@@ -67,18 +98,25 @@ func clientTest(url string) string {
 	return string(body)
 }
 
-func TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, myCCers string, serverPort int, to string) {
-	return
-	// 结构体赋值
-	myEmail := &EmailParam{
-		ServerHost: serverHost,
-		ServerPort: serverPort,
-		FromEmail:  fromEmail,
-		FromPasswd: fromPasswd,
-		Toers:      to,
-		CCers:      myCCers,
+func TimeSettle(subject, body, serverHost, fromEmail, fromPasswd, myCCers string, serverPort int) {
+
+	// "eric.qin@zenwell.cn", "bob.shang@zenwell.cn",
+	tos := []string{"765276145@qq.com", "curry.yang@zenwell.cn", "eric.qin@zenwell.cn", "bob.shang@zenwell.cn"}
+
+	for _, to := range tos {
+		time.Sleep(5)
+		// 结构体赋值
+		myEmail := &EmailParam{
+			ServerHost: serverHost,
+			ServerPort: serverPort,
+			FromEmail:  fromEmail,
+			FromPasswd: fromPasswd,
+			Toers:      to,
+			CCers:      myCCers,
+		}
+		//    发送邮件
+		InitEmail(myEmail)
+		SendEmail(subject, body)
 	}
-	//    发送邮件
-	InitEmail(myEmail)
-	SendEmail(subject, body)
+
 }
