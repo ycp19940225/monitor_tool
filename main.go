@@ -32,10 +32,6 @@ func main() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", viperConfig.GetString("email.config.from"))
 	m.SetHeader("To", tos...)
-	dial, err := server.server.Dial()
-	if err != nil {
-		panic(err.Error())
-	}
 	c.AddFunc("*/2 * * * *", func() {
 		for _, ip := range ips {
 			res := clientTest(ip)
@@ -46,7 +42,10 @@ func main() {
 				m.SetHeader("Subject", subject)
 				m.SetBody("text/html", body)
 				//m.Attach("../../go.mod")
-				fmt.Println(m)
+				dial, err := server.server.Dial()
+				if err != nil {
+					fmt.Println("邮件服务器连接错误:" + err.Error())
+				}
 				server.send(&dial, m)
 			} else {
 				fmt.Println(ip + "：" + time.Now().Format("2006-01-02 15:04:05") + "正常")
@@ -55,7 +54,7 @@ func main() {
 	})
 
 	// 每天
-	c.AddFunc("0 9,12 * * *", func() {
+	c.AddFunc("0,15 7,9,12,14 * * *", func() {
 		for _, ip := range ips {
 			res := clientTest(ip)
 			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
@@ -64,7 +63,10 @@ func main() {
 				body := "服务器正常:ip-" + ip
 				m.SetHeader("Subject", subject)
 				m.SetBody("text/html", body)
-				//m.Attach("../../go.mod")
+				dial, err := server.server.Dial()
+				if err != nil {
+					fmt.Println("邮件服务器连接错误:" + err.Error())
+				}
 				server.send(&dial, m)
 			}
 		}
