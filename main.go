@@ -74,7 +74,7 @@ func main() {
 	})
 
 	// 每天
-	c.AddFunc("00 16 L * *", func() {
+	c.AddFunc("30 14 L * *", func() {
 		clientClear()
 	})
 
