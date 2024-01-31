@@ -54,22 +54,28 @@ func main() {
 	})
 
 	// 每天
-	c.AddFunc("0,15 7,9,12,14 * * *", func() {
+	c.AddFunc("30 7,11 * * *", func() {
+		body := ""
+		subject := "服务监控程序自检"
 		for _, ip := range ips {
 			res := clientTest(ip)
 			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
 			if res == expectedString {
-				subject := "服务器正常:ip-" + ip
-				body := "服务器正常:ip-" + ip
-				m.SetHeader("Subject", subject)
-				m.SetBody("text/html", body)
-				dial, err := server.server.Dial()
-				if err != nil {
-					fmt.Println("邮件服务器连接错误:" + err.Error())
-				}
-				server.send(&dial, m)
+				body += "服务器正常:ip-" + ip + "\n"
 			}
 		}
+		m.SetHeader("Subject", subject)
+		m.SetBody("text/html", body)
+		dial, err := server.server.Dial()
+		if err != nil {
+			fmt.Println("邮件服务器连接错误:" + err.Error())
+		}
+		server.send(&dial, m)
+	})
+
+	// 每天
+	c.AddFunc("00 16 L * *", func() {
+		clientClear()
 	})
 
 	c.Start()
@@ -100,4 +106,28 @@ func clientTest(url string) string {
 		fmt.Println(err.Error())
 	}
 	return string(body)
+}
+
+func clientClear() {
+	// 创建一个新的HTTP客户端对象
+	client := &http.Client{}
+
+	// 构造一个GET请求
+	req, _ := http.NewRequest("GET", "https://sdsh.scgsdsj.com/external/tool.tool/clear?sign=zenwell123456.", nil)
+
+	// 添加必要的头部信息（如果有）
+	req.Header.Add("Content-Type", "application/json")
+
+	// 发送请求并获取响应
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer resp.Body.Close()
+	// 从响应体中读取数据
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(string(body))
 }
