@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-gomail/gomail"
 	"github.com/robfig/cron/v3"
@@ -37,11 +38,11 @@ func main() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", viperConfig.GetString("email.config.from"))
 	m.SetHeader("To", tos...)
+	// */2 * * * *
 	c.AddFunc("*/2 * * * *", func() {
 		for _, ip := range ips {
 			res := clientTest(ip)
-			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
-			if res != expectedString {
+			if res.StatusCode != 200 {
 				subject := "服务器告警:ip-" + ip
 				body := "服务器告警:ip-" + ip
 				m.SetHeader("Subject", subject)
@@ -58,19 +59,27 @@ func main() {
 		}
 	})
 
-	// 每天
+	// 每天  30 7,11 * * *
 	c.AddFunc("30 7,11 * * *", func() {
-		body := ""
+		content := ""
 		subject := "服务监控程序自检"
+
 		for _, ip := range ips {
-			res := clientTest(ip)
-			expectedString := `{"msg":"缺少必要的参数：token","code":-1}`
-			if res == expectedString {
-				body += "服务器正常:ip-" + ip + "\n"
-			}
+			resp := clientTestContent(ip)
+
+			var data map[string]string
+			json.Unmarshal([]byte(resp), &data)
+
+			// Access and print the parsed data
+			mysqlData := data["mysql"]
+			redisData := data["redis"]
+
+			content += "<h4>" + ip + "</h4>"
+			content += "mysql:\n" + mysqlData + "<br><br>"
+			content += "redis:\n" + redisData + "<br><br>------------------------------------------------------<br><br>"
 		}
 		m.SetHeader("Subject", subject)
-		m.SetBody("text/html", body)
+		m.SetBody("text/html", content)
 		dial, err := server.server.Dial()
 		if err != nil {
 			fmt.Println("邮件服务器连接错误:" + err.Error())
@@ -89,7 +98,27 @@ func main() {
 	select {}
 }
 
-func clientTest(url string) string {
+func clientTest(url string) *http.Response {
+	// 创建一个新的HTTP客户端对象
+	client := &http.Client{}
+
+	// 构造一个GET请求
+	req, _ := http.NewRequest("GET", url, nil)
+
+	// 添加必要的头部信息（如果有）
+	req.Header.Add("Content-Type", "application/json")
+
+	// 发送请求并获取响应
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+	defer resp.Body.Close()
+	return resp
+}
+
+func clientTestContent(url string) string {
 	// 创建一个新的HTTP客户端对象
 	client := &http.Client{}
 
