@@ -11,6 +11,11 @@ import (
 )
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered:", r)
+		}
+	}()
 	fmt.Println("start monitor server...")
 	viperConfig := viper.New()
 	viperConfig.AddConfigPath(".")
@@ -74,7 +79,7 @@ func main() {
 	})
 
 	// 每天
-	c.AddFunc("30 14 L * *", func() {
+	c.AddFunc("30 13 L * *", func() {
 		clientClear()
 	})
 
@@ -98,6 +103,7 @@ func clientTest(url string) string {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err.Error())
+		return ""
 	}
 	defer resp.Body.Close()
 	// 从响应体中读取数据
@@ -122,6 +128,7 @@ func clientClear() {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err.Error())
+		return
 	}
 	defer resp.Body.Close()
 	// 从响应体中读取数据
