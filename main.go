@@ -42,7 +42,7 @@ func main() {
 	c.AddFunc("*/2 * * * *", func() {
 		for _, ip := range ips {
 			res := clientTest(ip)
-			if res.StatusCode != 200 {
+			if res == nil || res.StatusCode != 200 {
 				subject := "服务器告警:ip-" + ip
 				body := "服务器告警:ip-" + ip
 				m.SetHeader("Subject", subject)
