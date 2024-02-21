@@ -45,6 +45,14 @@ func main() {
 			if res == nil || res.StatusCode != 200 {
 				subject := "服务器告警:ip-" + ip
 				body := "服务器告警:ip-" + ip
+
+				// 从响应体中读取数据
+				errInfo, err := ioutil.ReadAll(res.Body)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+				body += "<br/>错误内容:" + string(errInfo)
+
 				m.SetHeader("Subject", subject)
 				m.SetBody("text/html", body)
 				//m.Attach("../../go.mod")
