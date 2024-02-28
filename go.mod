@@ -3,13 +3,14 @@ module monitor_tool
 go 1.20
 
 require (
-	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/spf13/viper v1.18.2
 )
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
